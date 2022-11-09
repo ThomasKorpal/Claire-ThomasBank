@@ -9,23 +9,17 @@
 #define MAX_ACCOUNT_NUMBER 3
 #define MAX_CLIENT_NUMBER 5
 
-
-char* password[MAX_CLIENT_NUMBER]={"John2222", "290Anna", "1001Dalmatiens", "CPCets", "J'ai faim"};
+char* password_tab[MAX_CLIENT_NUMBER]={"John2222", "290Anna", "1001Dalmatiens", "CPCets", "J'ai faim"};
 
 int nouv_id = 1;
 
-Client clients[MAX_ACCOUNT_NUMBER];
-//int i = 0;
-
 typedef enum TypeOP {AJOUT, RETRAIT,SOLDE} TypeOP;
-
 typedef struct operation
 {
     TypeOP type;
     int montant;
     time_t date;
 }operation;
-
 typedef struct Account
 {
     int id_compte;
@@ -33,7 +27,6 @@ typedef struct Account
     operation* archive[MAX_ARCHIVE_NUMBER];
     int index_archive;
 }Account;
-
 typedef struct Client
 {
     int id_client;
@@ -41,6 +34,9 @@ typedef struct Client
     Account* Comptes[MAX_ACCOUNT_NUMBER];
     int index_compte;
 }Client;
+
+Client* clients[MAX_ACCOUNT_NUMBER];
+//int i = 0;
 
 void init_bank();
 Client* add_client(int id_client, char* password);

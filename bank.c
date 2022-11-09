@@ -10,7 +10,7 @@ void init_bank()
     for(int i = 0; i<MAX_CLIENT_NUMBER; i++)
     {
         int id_client=rand()%99999;
-        clients[i]=add_client(id_client, password[i]);
+        clients[i]=add_client(id_client, password_tab[i]);
         for(int i=0; i<MAX_ACCOUNT_NUMBER; i++){
             add_account(clients[i]);
         }
@@ -53,9 +53,9 @@ Client* find_client(int id_client)
 {
     for(int i = 0; i < MAX_CLIENT_NUMBER; i++)
     {
-        if((clients[i]).id_client == id_client)
+        if((clients[i])->id_client == id_client)
         {
-            return &clients[i];
+            return clients[i];
         }
     }
 
@@ -68,7 +68,7 @@ Account* find_account(Client* client, int id_compte)
     {
         if((client->Comptes[i])->id_compte == id_compte)
         {
-            return &(client->Comptes[i]);
+            return (client->Comptes[i]);
         }
     }
 
@@ -80,11 +80,11 @@ Client* identification(int id_client, char* password)
     Client* temp = find_client(id_client);
     char* verif;
     printf("Entrez votre mot de passe :\n");
-    scanf("%s", &verif);
+    scanf("%s", verif);
     while(strcmp(verif, temp->password) != 0)
     {
         printf("Mot de passe incorrect, veuillez re-taper votre mot de passe :\n");
-        scanf("%s", &verif);
+        scanf("%s", verif);
     }
     printf("Mot de passe correct");
     return temp;
@@ -144,7 +144,7 @@ void solde(int id_client, int id_compte, char* password)
     if(client_courrant != NULL)
     {
         Account* compte_courrant = find_account(client_courrant, id_compte);
-        printf("Votre solde est de: %d euros\n",compte_courrant->solde);
+        printf("Votre solde est de: %lld euros\n",compte_courrant->solde);
         time_t now;
         ecriture_archive(compte_courrant,SOLDE,time(&now),0);
     }
@@ -157,7 +157,7 @@ void operations(int id_client, int id_compte, char* password)
         Account* compte_courrant = find_account(client_courrant, id_compte);
         for(int i = 0; i < 10; i++)
         {
-         printf("Date : %s\n Type : %s\n Montant : %d euros\n\n",(compte_courrant->archive[i])->date, to_string((compte_courrant->archive[i])->type), (compte_courrant->archive[i])->montant);
+         printf("Date : %ld\n Type : %s\n Montant : %d euros\n\n",(compte_courrant->archive[i])->date, to_string((compte_courrant->archive[i])->type), (compte_courrant->archive[i])->montant);
         }
         time_t now;
         ecriture_archive(compte_courrant, SOLDE, time(&now), 0);
