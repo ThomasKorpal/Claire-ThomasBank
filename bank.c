@@ -3,6 +3,10 @@
 #include <stdio.h>
 #include <string.h>
 
+char* password_tab[MAX_CLIENT_NUMBER]={"John2222", "290Anna", "1001Dalmatiens", "CPCets", "J'ai faim"};
+
+int nouv_id = 1;
+
 void init_bank()
 {
     srand(time(NULL));
@@ -11,7 +15,7 @@ void init_bank()
     {
         int id_client=rand()%99999;
         clients[i]=add_client(id_client, password_tab[i]);
-        for(int i=0; i<MAX_ACCOUNT_NUMBER; i++){
+        for(int j=0; j<MAX_ACCOUNT_NUMBER; j++){
             add_account(clients[i]);
         }
     }
@@ -36,7 +40,7 @@ void add_account(Client* client)
     nouv_compte->solde = 0;
     nouv_compte->id_compte = nouv_id;
     nouv_id++;
-    for(int i = 0; i < MAX_ACCOUNT_NUMBER; i++)
+    for(int i = 0; i < MAX_ARCHIVE_NUMBER; i++)
     {
         nouv_compte->archive[i]=malloc(sizeof(operation));
     }
@@ -45,7 +49,11 @@ void add_account(Client* client)
     if(client->index_compte < MAX_ACCOUNT_NUMBER)
     {
         client->Comptes[client->index_compte]=nouv_compte;
-        client->index_compte++;
+    (client->index_compte)++;
+    }
+    else
+    {
+        printf("La limite de comptes a été atteinte!");
     }
 }
 
@@ -78,7 +86,7 @@ Account* find_account(Client* client, int id_compte)
 Client* identification(int id_client, char* password)
 {
     Client* temp = find_client(id_client);
-    char* verif;
+    char verif[15];
     printf("Entrez votre mot de passe :\n");
     scanf("%s", verif);
     while(strcmp(verif, temp->password) != 0)
@@ -86,7 +94,7 @@ Client* identification(int id_client, char* password)
         printf("Mot de passe incorrect, veuillez re-taper votre mot de passe :\n");
         scanf("%s", verif);
     }
-    printf("Mot de passe correct");
+    printf("Mot de passe correct\n");
     return temp;
 }
 
@@ -95,9 +103,10 @@ void ecriture_archive(Account* compte, TypeOP type_ope, time_t date, int montant
     operation* op = malloc(sizeof(operation));
     op->type=type_ope;
     op->montant=montant;
-    op->date=date;
+    op->date=malloc(sizeof(100));
+    op->date=ctime(&date);
 
-     if(compte->index_archive>=MAX_ARCHIVE_NUMBER)
+    if(compte->index_archive>=MAX_ARCHIVE_NUMBER)
     {
         for(int i=1; i<MAX_ARCHIVE_NUMBER; i++)
         {
@@ -123,7 +132,7 @@ void ajout(int id_client, int id_compte, char* password, int somme)
         time_t now;
         ecriture_archive(compte_courrant, AJOUT, time(&now), somme);
     }
-    
+    printf("La somme de %d€ a bien été ajoutée du compte n°%d appartenant au client n°%d\n",somme,id_compte,id_client);
 }
 
 void retrait(int id_client, int id_compte, char* password, int somme)
@@ -136,6 +145,7 @@ void retrait(int id_client, int id_compte, char* password, int somme)
         time_t now;
         ecriture_archive(compte_courrant,RETRAIT, time(&now), somme);
     }
+    printf("La somme de %d€ a bien été retirée du compte n°%d appartenant au client n°%d\n",somme,id_compte,id_client);
 }
 
 void solde(int id_client, int id_compte, char* password)
@@ -155,9 +165,10 @@ void operations(int id_client, int id_compte, char* password)
     Client* client_courrant = identification(id_client, password);
     if(client_courrant != NULL){
         Account* compte_courrant = find_account(client_courrant, id_compte);
+        printf("Visualisation des 10 dernières opérations :\n");
         for(int i = 0; i < 10; i++)
         {
-         printf("Date : %ld\n Type : %s\n Montant : %d euros\n\n",(compte_courrant->archive[i])->date, to_string((compte_courrant->archive[i])->type), (compte_courrant->archive[i])->montant);
+            printf("Date : %s\nType : %s\nMontant : %d euros\n\n",(compte_courrant->archive[i])->date, to_string((compte_courrant->archive[i])->type), (compte_courrant->archive[i])->montant);
         }
         time_t now;
         ecriture_archive(compte_courrant, SOLDE, time(&now), 0);
@@ -182,4 +193,12 @@ char* to_string(TypeOP op)
             res="";
     }
     return res;
+}
+
+void freeListClients()
+{
+    for(int i = 0; i<MAX_CLIENT_NUMBER; i++)
+    {
+        free(clients[i]);
+    }
 }
