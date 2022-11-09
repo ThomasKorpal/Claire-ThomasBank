@@ -3,8 +3,7 @@
 #include <stdio.h>
 #include <string.h>
 
-char* password_tab[MAX_CLIENT_NUMBER]={"John2222", "290Anna", "1001Dalmatiens", "CPCets", "J'ai faim"};
-
+char* password_tab[MAX_CLIENT_NUMBER]={"John2222", "290Anna", "1001Dalmatiens", "CPCets", "JaiFaim"};
 int nouv_id = 1;
 
 void init_bank()
@@ -86,15 +85,13 @@ Account* find_account(Client* client, int id_compte)
 Client* identification(int id_client, char* password)
 {
     Client* temp = find_client(id_client);
-    char verif[15];
-    printf("Entrez votre mot de passe :\n");
-    scanf("%s", verif);
-    while(strcmp(verif, temp->password) != 0)
+    int test = strcmp(password, temp->password);
+    if(test != 0)
     {
-        printf("Mot de passe incorrect, veuillez re-taper votre mot de passe :\n");
-        scanf("%s", verif);
+        printf("Mot de passe incorrect, veuillez reessayer.\n");
+        return NULL;
     }
-    printf("Mot de passe correct\n");
+    printf("Mot de passe correct, accès autorisé\n");
     return temp;
 }
 

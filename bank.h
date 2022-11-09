@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+#include <string.h>
 
 #define MAX_ARCHIVE_NUMBER  10
 #define MAX_ACCOUNT_NUMBER 3
