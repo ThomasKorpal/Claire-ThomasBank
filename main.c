@@ -23,6 +23,7 @@ void test()
     while(act != 5)
     {
         printf("Quelle action voulez vous effectuer ?\n- tapez 1 pour ajouter de l'argent à un de vos comptes\n- taper 2 pour faire un retrait\n- taper 3 pour consulter le solde d'un de vos comptes\n- taper 4 pour visulations les dernières opérations d'un de vos comptes\n- taper 5 pour fermer votre espace personnel\n");
+        printf("Numéro d'action : ");
         scanf("%d",&act);  
         switch(act)
         {

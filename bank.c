@@ -196,6 +196,14 @@ void freeListClients()
 {
     for(int i = 0; i<MAX_CLIENT_NUMBER; i++)
     {
+        for(int j = 0; j<MAX_ACCOUNT_NUMBER; j++)
+        {
+            for(int k = 0; k<MAX_ARCHIVE_NUMBER; k++)
+            {
+                free(clients[i]->Comptes[j]->archive[k]);
+            }
+            free(clients[i]->Comptes[j]);
+        }
         free(clients[i]);
     }
 }
