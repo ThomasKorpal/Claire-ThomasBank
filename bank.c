@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <time.h>
 
 char* password_tab[MAX_CLIENT_NUMBER]={"John2222", "290Anna", "1001Dalmatiens", "CPCets", "JaiFaim"};
 int nouv_id = 1;
@@ -128,8 +129,9 @@ void ajout(int id_client, int id_compte, char* password, int somme)
         compte_courrant->solde+=somme;
         time_t now;
         ecriture_archive(compte_courrant, AJOUT, time(&now), somme);
+        printf("La somme de %d€ a bien été ajoutée du compte n°%d appartenant au client n°%d\n",somme,id_compte,id_client);
     }
-    printf("La somme de %d€ a bien été ajoutée du compte n°%d appartenant au client n°%d\n",somme,id_compte,id_client);
+    
 }
 
 void retrait(int id_client, int id_compte, char* password, int somme)
@@ -141,8 +143,9 @@ void retrait(int id_client, int id_compte, char* password, int somme)
         compte_courrant->solde-=somme;
         time_t now;
         ecriture_archive(compte_courrant,RETRAIT, time(&now), somme);
+        printf("La somme de %d€ a bien été retirée du compte n°%d appartenant au client n°%d\n",somme,id_compte,id_client);
     }
-    printf("La somme de %d€ a bien été retirée du compte n°%d appartenant au client n°%d\n",somme,id_compte,id_client);
+    
 }
 
 void solde(int id_client, int id_compte, char* password)
@@ -167,8 +170,6 @@ void operations(int id_client, int id_compte, char* password)
         {
             printf("Date : %s\nType : %s\nMontant : %d euros\n\n",(compte_courrant->archive[i])->date, to_string((compte_courrant->archive[i])->type), (compte_courrant->archive[i])->montant);
         }
-        time_t now;
-        ecriture_archive(compte_courrant, SOLDE, time(&now), 0);
     }
 }
 
