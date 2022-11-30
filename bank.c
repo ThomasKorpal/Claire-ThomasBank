@@ -148,7 +148,7 @@ void retrait(int id_client, int id_compte, char* password, int somme)
     
 }
 
-void solde(int id_client, int id_compte, char* password)
+operation* solde(int id_client, int id_compte, char* password)
 {
     Client* client_courrant = identification(id_client, password);
     if(client_courrant != NULL)
@@ -156,11 +156,16 @@ void solde(int id_client, int id_compte, char* password)
         Account* compte_courrant = find_account(client_courrant, id_compte);
         printf("Votre solde est de: %lld euros\n",compte_courrant->solde);
         time_t now;
-        ecriture_archive(compte_courrant,SOLDE,time(&now),0);
+        ecriture_archive(compte_courrant,SOLDE,time(&now), compte_courrant->solde);
+
+        return compte_courrant->archive[compte_courrant->index_archive];
     }
+    printf("L'identification est incorrect\n");
+    return 0;
+    
 }
 
-void operations(int id_client, int id_compte, char* password)
+operation** operations(int id_client, int id_compte, char* password)
 {
     Client* client_courrant = identification(id_client, password);
     if(client_courrant != NULL){
@@ -170,7 +175,12 @@ void operations(int id_client, int id_compte, char* password)
         {
             printf("Date : %s\nType : %s\nMontant : %d euros\n\n",(compte_courrant->archive[i])->date, to_string((compte_courrant->archive[i])->type), (compte_courrant->archive[i])->montant);
         }
+
+        return compte_courrant->archive;
     }
+
+    printf("L'identification est incorrect\n");
+    return NULL;
 }
 
 char* to_string(TypeOP op)
