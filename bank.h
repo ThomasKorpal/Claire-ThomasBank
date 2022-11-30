@@ -40,17 +40,14 @@ Client* add_client(int id_client, char* password);
 void add_account(Client* client);
 void ajout(int id_client, int id_compte, char* password, int somme);
 void retrait(int id_client, int id_compte, char* password, int somme);
-
-//modification
 operation* solde(int id_client, int id_compte, char* password);
 operation** operations(int id_client, int id_compte, char* password);
-
-
 Client* find_client(int id_client);
 Client* identification(int id_client, char* password);
 void ecriture_archive(Account* compte, TypeOP operation, time_t date, int montant);
 Account* find_account(Client* client, int id_compte);
 char* to_string(TypeOP op);
 void freeListClients();
+void print_comptes();
 
 #endif

@@ -118,6 +118,10 @@ void HandleClient(int sock) {
 
 
 int main(int argc, char *argv[]) {
+
+  init_bank();
+  print_comptes();
+
   int serversock, clientsock;
   struct sockaddr_in echoserver, echoclient;
 

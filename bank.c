@@ -218,3 +218,15 @@ void freeListClients()
         free(clients[i]);
     }
 }
+
+void print_comptes()
+{
+    for(int i=0; i <MAX_CLIENT_NUMBER; i++)
+    {
+        printf("%d : %s (%d)\n",clients[i]->id_client,clients[i]->password,clients[i]->index_compte);
+        for(int j=0; j<MAX_ACCOUNT_NUMBER; j++)
+        {
+            printf("    Compte n°%d : %lld€ (%d)\n",clients[i]->Comptes[j]->id_compte,clients[i]->Comptes[j]->solde,clients[i]->Comptes[j]->index_archive);
+        }
+    }
+}
