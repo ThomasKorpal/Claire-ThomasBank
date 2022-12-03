@@ -17,61 +17,60 @@ void Recu_banque(char* buffer){
   if(buffer==NULL){
     printf("Probleme de recuperation de la requete\n");
     strcpy(buffer, "KO");
-    exit(1);
-  }
-  const char* delim=" <>";
-  char* requete=strtok(buffer, delim);
-  char* id=strtok(NULL, delim);
-  char* compte=strtok(NULL, delim);
-  char* password=strtok(NULL, delim);
-  char* somme;
-
-  int id_client=atoi(id);
-  int id_compte=atoi(compte);
-
-  printf("Requete : %s, Id_client : %d, id_compte : %d, Password : %s\n", requete, id_client, id_compte, password);
-
-  if(!strcmp(requete, "AJOUT") || !strcmp(requete, "RETRAIT")){
-    somme=strtok(NULL, delim);
-    int som=atoi(somme);
-    printf("Somme : %d\n", som);
-    if(!strcmp(requete, "AJOUT")){
-      ajout(id_client, id_compte, password, som);
-    }else{
-      retrait(id_client, id_compte, password, som);
-    }
-    strcpy(buffer, "OK");
-
-  }else if(!strcmp(requete, "SOLDE")){
-    operation* op=solde(id_client, id_compte, password);
-    strcpy(buffer, "RES_SOLDE ");
-    
-    char s[6];
-    sprintf(s, "%d", op->montant);
-    strcat(buffer, s);
-    strcat(buffer, " ");
-    strcat(buffer, op->date);
-
-  }else if(!strcmp(requete, "OPERATIONS")){
-    Account* compte=operations(id_client, id_compte, password);
-    strcpy(buffer, "RES_OPERATIONS");
-
-    for(int i=0; i<compte->index_archive; i++){
-      strcat(buffer, " ");
-      strcat(buffer, to_string(compte->archive[i]->type));
-      strcat(buffer, " ");
-      strcat(buffer, compte->archive[i]->date);
-      buffer[strlen(buffer)-1]=' ';
-
-      char s[6];
-      sprintf(s, "%d", compte->archive[i]->montant);
-      strcat(buffer, s);
-    }
-
   }else{
-    printf("Probleme de comprehension de requete");
-    strcpy(buffer, "KO");
-  } 
+    const char* delim=" <>";
+    char* requete=strtok(buffer, delim);
+    char* id=strtok(NULL, delim);
+    char* compte=strtok(NULL, delim);
+    char* password=strtok(NULL, delim);
+    char* somme;
+
+    int id_client=atoi(id);
+    int id_compte=atoi(compte);
+
+    if(!strcmp(requete, "AJOUT") || !strcmp(requete, "RETRAIT")){
+      somme=strtok(NULL, delim);
+      int som=atoi(somme);
+      if(!strcmp(requete, "AJOUT")){
+        ajout(id_client, id_compte, password, som);
+      }else{
+        retrait(id_client, id_compte, password, som);
+      }
+      strcpy(buffer, "OK");
+
+    }else if(!strcmp(requete, "SOLDE")){
+      operation* op=solde(id_client, id_compte, password);
+      strcpy(buffer, "RES_SOLDE ");
+      
+      char s[6];
+      sprintf(s, "%d", op->montant);
+      strcat(buffer, s);
+      strcat(buffer, " ");
+      strcat(buffer, op->date);
+
+    }else if(!strcmp(requete, "OPERATIONS")){
+      Account* compte=operations(id_client, id_compte, password);
+      strcpy(buffer, "RES_OPERATIONS");
+
+      for(int i=0; i<compte->index_archive; i++){
+        strcat(buffer, " ");
+        strcat(buffer, to_string(compte->archive[i]->type));
+        strcat(buffer, " ");
+        strcat(buffer, compte->archive[i]->date);
+        buffer[strlen(buffer)-1]=' ';
+
+        char s[6];
+        sprintf(s, "%d", compte->archive[i]->montant);
+        strcat(buffer, s);
+      }
+
+    }else{
+      printf("Probleme de comprehension de requete");
+      strcpy(buffer, "KO");
+    }
+  }
+
+  print_comptes(); 
 }
 
 
@@ -85,8 +84,14 @@ void HandleClient(int sock) {
   buffer[received]='\0';
   printf("Recu du buffer 1 : %s\n", buffer);
 
+
 // Send bytes and check for more incoming data in loop
   while (received > 0) {
+
+    Recu_banque(buffer);
+    printf("Modification du buffer : %s\n", buffer);
+    received=strlen(buffer);
+
   // Send back received data 
     if (send(sock, buffer, received, 0) != received) {
       Die("Failed to send bytes to client");
@@ -99,19 +104,11 @@ void HandleClient(int sock) {
     }
     buffer[received]='\0';
     printf("Recu du buffer : %s\n", buffer);
-
-    Recu_banque(buffer);
-    printf("Modification du buffer : %s\n", buffer);
-    received=strlen(buffer);
-
-    print_comptes();
   }
 
 /*
   // Send bytes and check for more incoming data in loop
   while (received > 0) {
-    //Recu_banque(buffer);
-    //printf("Modification du buffer : %s", buffer);
   // Send back received data 
     if (send(sock, buffer, received, 0) != received) {
       Die("Failed to send bytes to client");

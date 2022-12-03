@@ -99,14 +99,15 @@ int main(int argc, char *argv[]) {
     Die("Failed to connect with server");
   }
 
-  /* Send the word to the server */
+/*
+  // Send the word to the server
   echolen = strlen(argv[2]);
   if (send(sock, argv[2], echolen, 0) != echolen) {
     Die("Mismatch in number of sent bytes");
   }
   printf("Send : %s\n", argv[2]);
   
-  /* Receive the word back from the server */
+  // Receive the word back from the server
   fprintf(stdout, "Received: ");
   int bytes = 0;
   if ((bytes = recv(sock, buffer, BUFFSIZE-1, 0)) < 1) {
@@ -114,24 +115,21 @@ int main(int argc, char *argv[]) {
   }
   buffer[bytes] = '\0';        // Assure null terminated string
   fprintf(stdout,"%s\n",buffer);
+*/
 
-
-
-  Envoi_banque(buffer);
   while (strcmp(buffer, "EXIT")){
+    Envoi_banque(buffer);
     echolen=strlen(buffer);
     if (send(sock, buffer, echolen, 0) != echolen) {
       Die("Mismatch in number of sent bytes");
     }
     printf("Envoi : %s\n", buffer);
-
+    int bytes = 0;
     if ((bytes = recv(sock, buffer, BUFFSIZE-1, 0)) < 1) {
       Die("Failed to receive bytes from server");
     }
     buffer[bytes] = '\0';        // Assure null terminated string
     printf("Recu : %s\n", buffer);
-
-    Envoi_banque(buffer);
   }
 
   /*
