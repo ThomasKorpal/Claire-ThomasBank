@@ -158,25 +158,26 @@ operation* solde(int id_client, int id_compte, char* password)
         time_t now;
         ecriture_archive(compte_courrant,SOLDE,time(&now), compte_courrant->solde);
 
-        return compte_courrant->archive[compte_courrant->index_archive];
+        return compte_courrant->archive[compte_courrant->index_archive-1];
     }
     printf("L'identification est incorrect\n");
     return 0;
     
 }
 
-operation** operations(int id_client, int id_compte, char* password)
+Account* operations(int id_client, int id_compte, char* password)
 {
     Client* client_courrant = identification(id_client, password);
+    Account* compte_courrant;
     if(client_courrant != NULL){
-        Account* compte_courrant = find_account(client_courrant, id_compte);
+        compte_courrant = find_account(client_courrant, id_compte);
         printf("Visualisation des 10 dernières opérations :\n");
-        for(int i = 0; i < 10; i++)
+        for(int i = 0; i <compte_courrant->index_archive; i++)
         {
             printf("Date : %s\nType : %s\nMontant : %d euros\n\n",(compte_courrant->archive[i])->date, to_string((compte_courrant->archive[i])->type), (compte_courrant->archive[i])->montant);
         }
 
-        return compte_courrant->archive;
+        return compte_courrant;
     }
 
     printf("L'identification est incorrect\n");
@@ -230,3 +231,4 @@ void print_comptes()
         }
     }
 }
+

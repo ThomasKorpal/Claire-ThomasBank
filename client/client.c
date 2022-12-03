@@ -6,7 +6,7 @@
 #include <unistd.h>
 #include <netinet/in.h>
 
-#define BUFFSIZE 32
+#define BUFFSIZE 450
 void Die(char *mess) { perror(mess); exit(1); }
 
 

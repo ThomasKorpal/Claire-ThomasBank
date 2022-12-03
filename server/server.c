@@ -8,7 +8,7 @@
 #include "../bank.h"
 
 #define MAXPENDING 5    /* Max connection requests */
-#define BUFFSIZE 200
+#define BUFFSIZE 450
 void Die(char *mess) { perror(mess); exit(1); }
 
 
@@ -34,8 +34,8 @@ void Recu_banque(char* buffer){
   if(!strcmp(requete, "AJOUT") || !strcmp(requete, "RETRAIT")){
     somme=strtok(NULL, delim);
     int som=atoi(somme);
-    printf("Somme : %d", som);
-    if(strcmp(requete, "AJOUT")){
+    printf("Somme : %d\n", som);
+    if(!strcmp(requete, "AJOUT")){
       ajout(id_client, id_compte, password, som);
     }else{
       retrait(id_client, id_compte, password, som);
@@ -46,36 +46,25 @@ void Recu_banque(char* buffer){
     operation* op=solde(id_client, id_compte, password);
     strcpy(buffer, "RES_SOLDE ");
     
-    char* s="";
+    char s[6];
     sprintf(s, "%d", op->montant);
     strcat(buffer, s);
     strcat(buffer, " ");
     strcat(buffer, op->date);
 
   }else if(!strcmp(requete, "OPERATIONS")){
-    operation** tab=operations(id_client, id_compte, password);
+    Account* compte=operations(id_client, id_compte, password);
     strcpy(buffer, "RES_OPERATIONS");
 
-    for(int i=0; i<10; i++){
+    for(int i=0; i<compte->index_archive; i++){
       strcat(buffer, " ");
-      switch(tab[i]->type){
-        case 0:
-          strcat(buffer, "AJOUT");
-          break;
-        case 1:
-          strcat(buffer, "RETRAIT");
-          break;
-        case 2:
-          strcat(buffer, "SOLDE");
-          break;
-      }
+      strcat(buffer, to_string(compte->archive[i]->type));
+      strcat(buffer, " ");
+      strcat(buffer, compte->archive[i]->date);
+      buffer[strlen(buffer)-1]=' ';
 
-      strcat(buffer, " ");
-      strcat(buffer, tab[i]->date);
-      strcat(buffer, " ");
-
-      char* s="";
-      sprintf(s, "%d", tab[i]->montant);
+      char s[6];
+      sprintf(s, "%d", compte->archive[i]->montant);
       strcat(buffer, s);
     }
 
@@ -93,25 +82,52 @@ void HandleClient(int sock) {
   if ((received = recv(sock, buffer, BUFFSIZE, 0)) < 0) {
     Die("Failed to receive initial bytes from client");
   }
+  buffer[received]='\0';
   printf("Recu du buffer 1 : %s\n", buffer);
 
-  /* Send bytes and check for more incoming data in loop */
+// Send bytes and check for more incoming data in loop
   while (received > 0) {
-    //Recu_banque(buffer);
-    //printf("Modification du buffer : %s", buffer);
-  /* Send back received data */
+  // Send back received data 
     if (send(sock, buffer, received, 0) != received) {
       Die("Failed to send bytes to client");
     }
     printf("Envoi du buffer : %s\n", buffer);
-    /* Check for more data */
+
+    //Check for more data
+    if ((received = recv(sock, buffer, BUFFSIZE, 0)) < 0) {
+      Die("Failed to receive additional bytes from client");
+    }
+    buffer[received]='\0';
+    printf("Recu du buffer : %s\n", buffer);
+
+    Recu_banque(buffer);
+    printf("Modification du buffer : %s\n", buffer);
+    received=strlen(buffer);
+
+    print_comptes();
+  }
+
+/*
+  // Send bytes and check for more incoming data in loop
+  while (received > 0) {
+    //Recu_banque(buffer);
+    //printf("Modification du buffer : %s", buffer);
+  // Send back received data 
+    if (send(sock, buffer, received, 0) != received) {
+      Die("Failed to send bytes to client");
+    }
+    printf("Envoi du buffer : %s\n", buffer);
+    //Check for more data
     if ((received = recv(sock, buffer, BUFFSIZE, 0)) < 0) {
       Die("Failed to receive additional bytes from client");
     }
     buffer[received]='\0';
     printf("Recu du buffer : %s\n", buffer);
   }
+*/
+
   printf("Fermeture de la connexion du client\n");
+  freeListClients();
   close(sock);
 }
 
