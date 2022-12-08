@@ -11,12 +11,14 @@
 #define MAX_CLIENT_NUMBER 5
 
 typedef enum TypeOP {AJOUT, RETRAIT,SOLDE} TypeOP;
+
 typedef struct operation
 {
     TypeOP type;
     int montant;
     char* date;
 }operation;
+
 typedef struct Account
 {
     int id_compte;
@@ -24,6 +26,7 @@ typedef struct Account
     operation* archive[MAX_ARCHIVE_NUMBER];
     int index_archive;
 }Account;
+
 typedef struct Client
 {
     int id_client;
@@ -33,7 +36,6 @@ typedef struct Client
 }Client;
 
 Client* clients[MAX_CLIENT_NUMBER];
-//int i = 0;
 
 void init_bank();
 Client* add_client(int id_client, char* password);
