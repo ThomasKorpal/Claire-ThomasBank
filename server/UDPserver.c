@@ -1,4 +1,3 @@
-// Server side implementation of UDP client-server model
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -10,9 +9,10 @@
 #include "../bank.h"
 	
 #define PORT	 8080
-#define MAXLINE 1024
-	
+#define BUFFSIZE 1024
 
+
+void Die(char *mess) { perror(mess); exit(1); }
 
 void Ecriture_Solde(char* buffer, operation* op){
   if(op!=NULL){
@@ -53,7 +53,7 @@ void Recu_banque(char* buffer){
   if(buffer==NULL){
     printf("Probleme de recuperation de la requete\n");
     strcpy(buffer, "KO");
-  }else if(strcmp(buffer, "EXIT")){
+  }else if(strcmp(buffer, "EXIT") && strcmp(buffer, "")){
     const char* delim=" <>";
     char* requete=strtok(buffer, delim);
     int id_client=atoi(strtok(NULL, delim));
@@ -92,45 +92,51 @@ void Recu_banque(char* buffer){
 }
 
 
-// Driver code
 int main() {
-	int sockfd;
-	char buffer[MAXLINE];
+	int sock;
+	char buffer[BUFFSIZE];
 	struct sockaddr_in servaddr, cliaddr;
+	int addrlen, bufferlen;
 		
+
+	init_bank();
+	print_comptes();	
+
 	// Creating socket file descriptor
-	if ( (sockfd = socket(AF_INET, SOCK_DGRAM, 0)) < 0 ) {
-		perror("socket creation failed");
-		exit(EXIT_FAILURE);
+	if ( (sock = socket(PF_INET, SOCK_DGRAM, IPPROTO_UDP)) < 0 ) {
+		Die("Failed to create socket");
 	}
 		
 	memset(&servaddr, 0, sizeof(servaddr));
 	memset(&cliaddr, 0, sizeof(cliaddr));
-		
 	// Filling server information
 	servaddr.sin_family = AF_INET; // IPv4
-	servaddr.sin_addr.s_addr = inet_addr("127.0.0.1");
+	servaddr.sin_addr.s_addr = INADDR_ANY;
 	servaddr.sin_port = htons(PORT);
 		
 	// Bind the socket with the server address
-	if ( bind(sockfd, (const struct sockaddr *)&servaddr,
-			sizeof(servaddr)) < 0 )
-	{
-		perror("bind failed");
-		exit(EXIT_FAILURE);
+	if ( bind(sock, (const struct sockaddr *)&servaddr, sizeof(servaddr)) < 0 ){
+		Die("Failed to bind the server socket");
 	}
 		
-	int n;
+	addrlen = sizeof(cliaddr); //len is value/result
 	
+
 	while(1){
-	n = recvfrom(sockfd, (char *)buffer, MAXLINE, MSG_WAITALL, ( struct sockaddr *) &cliaddr, (socklen_t*) sizeof(cliaddr));
-	buffer[n] = '\0';
-	printf("Client : %s\n", buffer);
+		if((bufferlen = recvfrom(sock, (char *)buffer, BUFFSIZE, MSG_WAITALL, ( struct sockaddr *) &cliaddr, (socklen_t *) &addrlen))<0){
+			Die("Failed to receive additional bytes from client");
+		}
+		buffer[bufferlen] = '\0';
+		printf("Client : %s\n", buffer);
 
+		Recu_banque(buffer);
+		bufferlen=strlen(buffer);
 
-	n=sendto(sockfd, buffer, n, MSG_CONFIRM, (const struct sockaddr *) &cliaddr, sizeof(cliaddr));
-	printf("%d\n", n);
-	printf("Hello message sent.\n");
+		if(sendto(sock, buffer, bufferlen, MSG_CONFIRM, (const struct sockaddr *) &cliaddr, addrlen)!=bufferlen){
+			Die("Failed to send bytes to client");
+		}
+		printf("Server envoi : %s\n", buffer);
 	}
+		
 	return 0;
 }

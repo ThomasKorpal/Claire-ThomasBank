@@ -9,8 +9,12 @@
 #include <netinet/in.h>
 	
 #define PORT	 8080
-#define MAXLINE 1024
-	
+#define BUFFSIZE 1024
+
+
+
+void Die(char *mess) { perror(mess); exit(1); }
+
 
 void choix(char* buffer, int action){
   switch(action){
@@ -79,48 +83,51 @@ void Envoi_banque(char* buffer){
 
 // Driver code
 int main() {
-	int sockfd;
-	char buffer[MAXLINE];
-	struct sockaddr_in	 servaddr={0};
-	struct sockaddr_in cliaddr={0};
-	// Creating socket file descriptor
-	if ( (sockfd = socket(AF_INET, SOCK_DGRAM, 0)) < 0 ) {
-		perror("socket creation failed");
-		exit(EXIT_FAILURE);
-	}
+	int sock;
+	char buffer[BUFFSIZE];
+	struct sockaddr_in	 servaddr, cliaddr;
+	int bufferlen, addrlen;
 	
-	//memset(&servaddr, 0, sizeof(servaddr));
-	//memset(&cliaddr, 0, sizeof(cliaddr));	
+	// Creation du socket client
+	if ( (sock = socket(PF_INET, SOCK_DGRAM, IPPROTO_UDP)) < 0 ) {
+		Die("Failed to create socket");
+	}
 
 
+	memset(&servaddr, 0, sizeof(servaddr));
+	// Filling server information
+	servaddr.sin_family = AF_INET; // IPv4
+	servaddr.sin_addr.s_addr = INADDR_ANY;
+	servaddr.sin_port = htons(PORT);
+
+
+	memset(&cliaddr, 0, sizeof(cliaddr));
 	cliaddr.sin_family = AF_INET;
-	cliaddr.sin_port = htons(2000);
+	cliaddr.sin_port = htons(PORT+1);
 	cliaddr.sin_addr.s_addr = INADDR_ANY;
 
-	if ( bind(sockfd, (const struct sockaddr *)&cliaddr, sizeof(cliaddr)) < 0 ){
-		perror("bind failed");
-		exit(EXIT_FAILURE);
+	// Bind the client socket
+  	if (bind(sock, (struct sockaddr *) &cliaddr, sizeof(cliaddr)) < 0) {
+    	Die("Failed to bind the server socket");
+  	}
+	
+	while(strcmp(buffer, "EXIT")){
+		Envoi_banque(buffer);
+		bufferlen=strlen(buffer);
+
+		if(sendto(sock, buffer, bufferlen, MSG_CONFIRM, (const struct sockaddr *) &servaddr, sizeof(servaddr))!=bufferlen){
+			Die("Mismatch in number of sent bytes");
+		}
+		printf("Client envoi : %s\n", buffer);
+				
+		if((bufferlen = recvfrom(sock, (char *)buffer, BUFFSIZE, MSG_WAITALL, (struct sockaddr *) &servaddr, (socklen_t*) &addrlen))<1){
+			Die("Failed to receive bytes from server");
+		}
+		buffer[bufferlen] = '\0';
+		printf("Server : %s\n", buffer);
 	}
 
-	// Filling server information
-	servaddr.sin_family = AF_INET;
-	servaddr.sin_port = htons(PORT);
-	servaddr.sin_addr.s_addr = inet_addr("127.0.0.1");
-		
-	int n;
-		
-while(strcmp(buffer, "EXIT")){
-	Envoi_banque(buffer);
-	n=strlen(buffer);
-	
-	sendto(sockfd, buffer, n, MSG_CONFIRM, (const struct sockaddr *) &servaddr, sizeof(servaddr));
-	printf("Hello message sent.\n");
-			
-
-	n = recvfrom(sockfd, (char *)buffer, MAXLINE, MSG_WAITALL, (struct sockaddr *) &servaddr, (socklen_t *) sizeof(servaddr));
-	buffer[n] = '\0';
-	printf("Server : %s\n", buffer);
-}
-	close(sockfd);
+	printf("Fermeture cl\n");
+	close(sock);
 	return 0;
 }
