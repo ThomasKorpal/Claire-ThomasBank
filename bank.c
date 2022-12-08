@@ -86,14 +86,18 @@ Account* find_account(Client* client, int id_compte)
 Client* identification(int id_client, char* password)
 {
     Client* temp = find_client(id_client);
-    int test = strcmp(password, temp->password);
-    if(test != 0)
-    {
-        printf("Mot de passe incorrect, veuillez reessayer.\n");
-        return NULL;
+    if(temp!=NULL){
+        int test = strcmp(password, temp->password);
+        if(test != 0)
+        {
+            printf("Mot de passe incorrect, veuillez reessayer.\n");
+            return NULL;
+        }
+        printf("Mot de passe correct, accès autorisé\n");
+        return temp;
     }
-    printf("Mot de passe correct, accès autorisé\n");
-    return temp;
+    printf("Compte client inexistant, veuillez verifier le numero client\n");
+    return NULL;
 }
 
 void ecriture_archive(Account* compte, TypeOP type_ope, time_t date, int montant)
@@ -120,32 +124,38 @@ void ecriture_archive(Account* compte, TypeOP type_ope, time_t date, int montant
     }
 }
 
-void ajout(int id_client, int id_compte, char* password, int somme)
+int ajout(int id_client, int id_compte, char* password, int somme)
 {
     Client* client_courrant = identification(id_client, password);
     if(client_courrant != NULL)
     {
         Account* compte_courrant = find_account(client_courrant, id_compte);
-        compte_courrant->solde+=somme;
-        time_t now;
-        ecriture_archive(compte_courrant, AJOUT, time(&now), somme);
-        printf("La somme de %d€ a bien été ajoutée du compte n°%d appartenant au client n°%d\n",somme,id_compte,id_client);
+        if(compte_courrant!=NULL){
+            compte_courrant->solde+=somme;
+            time_t now;
+            ecriture_archive(compte_courrant, AJOUT, time(&now), somme);
+            printf("La somme de %d€ a bien été ajoutée du compte n°%d appartenant au client n°%d\n",somme,id_compte,id_client);
+            return 1;
+        }
     }
-    
+    return 0;
 }
 
-void retrait(int id_client, int id_compte, char* password, int somme)
+int retrait(int id_client, int id_compte, char* password, int somme)
 {
     Client* client_courrant = identification(id_client, password);
     if(client_courrant != NULL)
     {
         Account* compte_courrant = find_account(client_courrant, id_compte);
-        compte_courrant->solde-=somme;
-        time_t now;
-        ecriture_archive(compte_courrant,RETRAIT, time(&now), somme);
-        printf("La somme de %d€ a bien été retirée du compte n°%d appartenant au client n°%d\n",somme,id_compte,id_client);
+        if(compte_courrant!=NULL){
+            compte_courrant->solde-=somme;
+            time_t now;
+            ecriture_archive(compte_courrant,RETRAIT, time(&now), somme);
+            printf("La somme de %d€ a bien été retirée du compte n°%d appartenant au client n°%d\n",somme,id_compte,id_client);
+            return 1;
+        }
     }
-    
+    return 0;
 }
 
 operation* solde(int id_client, int id_compte, char* password)
@@ -154,15 +164,15 @@ operation* solde(int id_client, int id_compte, char* password)
     if(client_courrant != NULL)
     {
         Account* compte_courrant = find_account(client_courrant, id_compte);
-        printf("Votre solde est de: %lld euros\n",compte_courrant->solde);
-        time_t now;
-        ecriture_archive(compte_courrant,SOLDE,time(&now), compte_courrant->solde);
+        if(compte_courrant!=NULL){
+            printf("Votre solde est de: %lld euros\n",compte_courrant->solde);
+            time_t now;
+            ecriture_archive(compte_courrant,SOLDE,time(&now), compte_courrant->solde);
 
-        return compte_courrant->archive[compte_courrant->index_archive-1];
+            return compte_courrant->archive[compte_courrant->index_archive-1];
+        }
     }
-    printf("L'identification est incorrect\n");
-    return 0;
-    
+    return NULL;
 }
 
 Account* operations(int id_client, int id_compte, char* password)
@@ -171,16 +181,17 @@ Account* operations(int id_client, int id_compte, char* password)
     Account* compte_courrant;
     if(client_courrant != NULL){
         compte_courrant = find_account(client_courrant, id_compte);
-        printf("Visualisation des 10 dernières opérations :\n");
-        for(int i = 0; i <compte_courrant->index_archive; i++)
-        {
-            printf("Date : %s\nType : %s\nMontant : %d euros\n\n",(compte_courrant->archive[i])->date, to_string((compte_courrant->archive[i])->type), (compte_courrant->archive[i])->montant);
-        }
+        if(compte_courrant!=NULL){
+            printf("Visualisation des 10 dernières opérations :\n");
+            for(int i = 0; i <compte_courrant->index_archive; i++)
+            {
+                printf("Date : %s\nType : %s\nMontant : %d euros\n\n",(compte_courrant->archive[i])->date, to_string((compte_courrant->archive[i])->type), (compte_courrant->archive[i])->montant);
+            }
 
-        return compte_courrant;
+            return compte_courrant;
+        }
     }
 
-    printf("L'identification est incorrect\n");
     return NULL;
 }
 
@@ -224,10 +235,10 @@ void print_comptes()
 {
     for(int i=0; i <MAX_CLIENT_NUMBER; i++)
     {
-        printf("%d : %s (%d)\n",clients[i]->id_client,clients[i]->password,clients[i]->index_compte);
+        printf("%d : %s\n",clients[i]->id_client,clients[i]->password);
         for(int j=0; j<MAX_ACCOUNT_NUMBER; j++)
         {
-            printf("    Compte n°%d : %lld€ (%d)\n",clients[i]->Comptes[j]->id_compte,clients[i]->Comptes[j]->solde,clients[i]->Comptes[j]->index_archive);
+            printf("    Compte n°%d : %lld€\n",clients[i]->Comptes[j]->id_compte,clients[i]->Comptes[j]->solde);
         }
     }
 }

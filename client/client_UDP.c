@@ -79,7 +79,7 @@ void Envoi_banque(char* buffer){
 
 int main(int argc, char *argv[]) {
   int sock;
-  struct sockaddr_in echoserver;
+  struct sockaddr_in echoserver, echoclient;
   char buffer[BUFFSIZE];
   unsigned int echolen;
 
@@ -88,35 +88,44 @@ int main(int argc, char *argv[]) {
     exit(1);
   }
 
-  /* Create the TCP socket */
-  if ((sock = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP)) < 0) {
+  // Create the TCP socket 
+  if ((sock = socket(PF_INET, SOCK_DGRAM, IPPROTO_UDP)) < 0) {
     Die("Failed to create socket");
   }
 
-  /* Construct the server sockaddr_in structure */
-  memset(&echoserver, 0, sizeof(echoserver));       /* Clear struct */
-  echoserver.sin_family = AF_INET;                  /* Internet/IP */
-  echoserver.sin_addr.s_addr = inet_addr(argv[1]);  /* IP address */
-  echoserver.sin_port = htons(atoi(argv[3]));       /* server port */
+  // Construct the client sockaddr_in structure 
+  memset(&echoclient, 0, sizeof(echoclient));       // Clear struct 
+  echoclient.sin_family = AF_INET;                  // Internet/IP
+  echoclient.sin_addr.s_addr = htonl(INADDR_ANY);  // IP address
+  echoclient.sin_port = htons(atoi(argv[3]));       // client port 
   
-  /* Establish connection */
-  if (connect(sock, (struct sockaddr *) &echoserver, sizeof(echoserver)) < 0) {
-    Die("Failed to connect with server");
+
+  // Bind the client socket
+  if (bind(sock, (struct sockaddr *) &echoclient, sizeof(echoclient)) < 0) {
+    Die("Failed to bind the server socket");
   }
+
+  // Construct the server sockaddr_in structure 
+  memset(&echoserver, 0, sizeof(echoserver));       // Clear struct 
+  echoserver.sin_family = AF_INET;                  // Internet/IP 
+  echoserver.sin_addr.s_addr = inet_addr(argv[1]);  // IP address 
+  echoserver.sin_port = htons(atoi(argv[2]));       // server port
+
 
   while (strcmp(buffer, "EXIT")){
     Envoi_banque(buffer);
     echolen=strlen(buffer);
 
-    if (send(sock, buffer, echolen, 0) != echolen) {
+    if (sendto(sock, buffer, echolen, 0, (struct sockaddr*) &echoserver, sizeof(echoserver)) != echolen) {
       Die("Mismatch in number of sent bytes");
     }
     printf("Envoi : %s\n", buffer);
-    
-    if ((echolen = recv(sock, buffer, BUFFSIZE-1, 0)) < 1) {
+
+    int bytes = 0;
+    if ((bytes = recvfrom(sock, buffer, BUFFSIZE-1, 0, (struct sockaddr*) &echoserver, (socklen_t*) sizeof(echoserver))) < 1) {
       Die("Failed to receive bytes from server");
     }
-    buffer[echolen] = '\0';        // Assure null terminated string
+    buffer[bytes] = '\0';        // Assure null terminated string
     printf("Recu : %s\n", buffer);
   }
 

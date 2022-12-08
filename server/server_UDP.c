@@ -50,7 +50,7 @@ void Recu_banque(char* buffer){
   if(buffer==NULL){
     printf("Probleme de recuperation de la requete\n");
     strcpy(buffer, "KO");
-  }else if(strcmp(buffer, "EXIT") && strcmp(buffer, "")){
+  }else if(strcmp(buffer, "EXIT")){
     const char* delim=" <>";
     char* requete=strtok(buffer, delim);
     int id_client=atoi(strtok(NULL, delim));
@@ -89,32 +89,25 @@ void Recu_banque(char* buffer){
 }
 
 
-void HandleClient(int sock) {
+void HandleClient(int sock, struct sockaddr_in echoclient) {
   char buffer[BUFFSIZE];
-  int received = 1;
+  int received = -1;
 
-// Send bytes and check for more incoming data in loop
-  while (received > 0 && strcmp(buffer, "EXIT")) {
 
-    //Check for more data
-    if ((received = recv(sock, buffer, BUFFSIZE, 0)) < 0) {
+  for(;;){
+    if((received=recvfrom(sock, buffer, BUFFSIZE, 0, (struct sockaddr*) &echoclient, (socklen_t*) sizeof(echoclient)))<0){
       Die("Failed to receive additional bytes from client");
     }
-    buffer[received]='\0';
-    printf("Recu du buffer : %s\n", buffer);
 
-    Recu_banque(buffer);
-    received=strlen(buffer);
+    printf("Recu : %s\n", buffer);
 
-  // Send back received data 
-    if (send(sock, buffer, received, 0) != received) {
+    if(sendto(sock, buffer, received, 0, (struct sockaddr *) &echoclient, sizeof(echoclient))!=received){
       Die("Failed to send bytes to client");
     }
-    printf("Envoi du buffer : %s\n", buffer);
-  }
 
-  printf("Fermeture de la connexion du client\n");
-  close(sock);
+    printf("Envoi : %s\n", buffer);
+
+  }
 }
 
 
@@ -124,7 +117,7 @@ int main(int argc, char *argv[]) {
   init_bank();
   print_comptes();
 
-  int serversock, clientsock;
+  int serversock;
   struct sockaddr_in echoserver, echoclient;
 
   if (argc != 2) {
@@ -132,9 +125,12 @@ int main(int argc, char *argv[]) {
     exit(1);
   }
   // Create the TCP socket
-  if ((serversock = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP)) < 0) {
+  if ((serversock = socket(PF_INET, SOCK_DGRAM, IPPROTO_UDP)) < 0) {
     Die("Failed to create socket");
   }
+  
+
+  memset(&echoclient, 0, sizeof(echoclient));
   // Construct the server sockaddr_in structure
   memset(&echoserver, 0, sizeof(echoserver));       // Clear struct
   echoserver.sin_family = AF_INET;                  // Internet/IP 
@@ -147,11 +143,14 @@ int main(int argc, char *argv[]) {
     Die("Failed to bind the server socket");
   }
 
+/*
   // Listen on the server socket
   if (listen(serversock, MAXPENDING) < 0) {
     Die("Failed to listen on server socket");
   }
+*/
 
+ /* 
   // Run until cancelled
   while (1) {
     unsigned int clientlen = sizeof(echoclient);
@@ -162,6 +161,7 @@ int main(int argc, char *argv[]) {
     fprintf(stdout, "Client connected: %s\n", inet_ntoa(echoclient.sin_addr));
     HandleClient(clientsock);
   }
+*/
 
-  freeListClients();
+  HandleClient(serversock, echoclient);
 }
