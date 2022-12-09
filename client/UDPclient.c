@@ -1,14 +1,14 @@
 #include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <string.h>
+#include <sys/types.h>
 #include <sys/socket.h>
 #include <arpa/inet.h>
-#include <stdlib.h>
-#include <string.h>
-#include <unistd.h>
 #include <netinet/in.h>
-
-#define BUFFSIZE 1000
-#define PORT 2000
-
+	
+#define PORT	 8080
+#define BUFFSIZE 1024
 
 void Die(char *mess) { perror(mess); exit(1); }
 
@@ -84,51 +84,55 @@ void Envoi_banque(char* buffer){
 
 
 int main() {
-  int sock;
-  struct sockaddr_in echoserver;
-  char buffer[BUFFSIZE];
-  unsigned int echolen;
+	int sock;
+	char buffer[BUFFSIZE];
+	struct sockaddr_in	 servaddr, cliaddr;
+	int bufferlen, addrlen;
+	
+	//Creation du socket client
+	if ( (sock = socket(PF_INET, SOCK_DGRAM, IPPROTO_UDP)) < 0 ) {
+		Die("Failed to create socket");
+	}
 
-  //Creation du socket client
-  if ((sock = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP)) < 0) {
-    Die("Failed to create socket");
-  }
+	//Construction du sockaddr_in du server
+	memset(&servaddr, 0, sizeof(servaddr));
+	servaddr.sin_family = AF_INET; // IPv4
+	servaddr.sin_addr.s_addr = INADDR_ANY;
+	servaddr.sin_port = htons(PORT);
 
-  //Construction du sockaddr_in du server
-  memset(&echoserver, 0, sizeof(echoserver));       // Clear struct
-  echoserver.sin_family = AF_INET;                  // Internet/IP
-  echoserver.sin_addr.s_addr = inet_addr("127.0.0.1");  // IP address
-  echoserver.sin_port = htons(PORT);       // port du server
-  
-  //Connection au server
-  if (connect(sock, (struct sockaddr *) &echoserver, sizeof(echoserver)) < 0) {
-    Die("Failed to connect with server");
-  }
+	//Construction du sockaddr_in du client
+	memset(&cliaddr, 0, sizeof(cliaddr));
+	cliaddr.sin_family = AF_INET;
+	cliaddr.sin_port = htons(PORT+1);
+	cliaddr.sin_addr.s_addr = INADDR_ANY;
 
-  //Envoi/Reception tant que pas de demande de EXIT
-  while (strcmp(buffer, "EXIT")){
+	//Bind le socket client
+  	if (bind(sock, (struct sockaddr *) &cliaddr, sizeof(cliaddr)) < 0) {
+    	Die("Failed to bind the server socket");
+  	}
+	
+	//Tourne en boucle tant que le client ne veut pas quitter
+	while(strcmp(buffer, "EXIT")){
 
-    //Traitement de la demande du client
-    Envoi_banque(buffer);
-    echolen=strlen(buffer);
+		//Traitement de la demande du client
+		Envoi_banque(buffer);
+		bufferlen=strlen(buffer);
 
-    //Envoi du buffer(contemant la demande du client) au server
-    if (send(sock, buffer, echolen, 0) != echolen) {
-      Die("Mismatch in number of sent bytes");
-    }
-    printf("Envoi au server : %s\n", buffer);
-    
+		//Envoi du buffer(contemant la demande du client) au server
+		if(sendto(sock, buffer, bufferlen, MSG_CONFIRM, (const struct sockaddr *) &servaddr, sizeof(servaddr))!=bufferlen){
+			Die("Mismatch in number of sent bytes");
+		}
+		printf("Client envoi : %s\n", buffer);
+				
+		//Reception du buffer envoyée par le server
+		if((bufferlen = recvfrom(sock, (char *)buffer, BUFFSIZE, MSG_WAITALL, (struct sockaddr *) &servaddr, (socklen_t*) &addrlen))<1){
+			Die("Failed to receive bytes from server");
+		}
+		buffer[bufferlen] = '\0';   //Ajout du fin de caractere
+		printf("Recu de la part du server : %s\n", buffer);
+	}
 
-    //Reception du buffer envoyée par le server
-    if ((echolen = recv(sock, buffer, BUFFSIZE-1, 0)) < 1) {
-      Die("Failed to receive bytes from server");
-    }
-    buffer[echolen] = '\0';        //Ajout du fin de caractere
-    printf("Recu par le server : %s\n", buffer);
-  }
-
-  printf("Fermeture du socket client\n");
-  close(sock);
-  exit(0);
+	printf("Fermeture du socket client\n");
+	close(sock);
+	return 0;
 }
-

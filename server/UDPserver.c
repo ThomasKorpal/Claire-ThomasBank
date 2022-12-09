@@ -1,18 +1,18 @@
 #include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <string.h>
+#include <sys/types.h>
 #include <sys/socket.h>
 #include <arpa/inet.h>
-#include <stdlib.h>
-#include <string.h>
-#include <unistd.h>
 #include <netinet/in.h>
 #include "../bank.h"
+	
+#define PORT	 8080
+#define BUFFSIZE 1024
 
-#define MAXPENDING 5    /* Max connection requests */
-#define BUFFSIZE 1000
-#define PORT 2000
 
 void Die(char *mess) { perror(mess); exit(1); }
-
 
 //Ecriture dans le buffer pour une requete de solde
 void Ecriture_Solde(char* buffer, operation* op){
@@ -97,82 +97,59 @@ void Recu_banque(char* buffer){
 }
 
 
-//Fonction permettant de l'envoi et reception de messages selon les requetes du client
-void HandleClient(int sock) {
-  char buffer[BUFFSIZE]="";
-  int received = 1;
-
-  //Tourne en boucle tant que le client envoie des donnees ou ne demande pas de quitter
-  while (received > 0 && strcmp(buffer, "EXIT")) {
-
-    //Reception de la requete du client
-    if ((received = recv(sock, buffer, BUFFSIZE, 0)) < 0) {
-      Die("Failed to receive additional bytes from client");
-    }
-    buffer[received]='\0';  //Ajout du fin de caractere
-    printf("Recu du buffer : %s\n", buffer);
-
-    //Traitement de la requete du client
-    Recu_banque(buffer);
-    received=strlen(buffer);
-
-    //Envoie de reponse a la requet du client
-    if (send(sock, buffer, received, 0) != received) {
-      Die("Failed to send bytes to client");
-    }
-    printf("Envoi du buffer : %s\n", buffer);
-  }
-
-  printf("Fermeture de la connexion du client\n");
-  close(sock);
-}
-
-
-
 int main() {
+	int sock;
+	char buffer[BUFFSIZE];
+	struct sockaddr_in servaddr, cliaddr;
+	int addrlen, bufferlen;
+		
+	
+  	//Creation des comptes bancaires des clients et affichage des comptes
+	init_bank();
+	print_comptes();	
 
-  //Creation des comptes bancaires des clients et affichage des comptes
-  init_bank();
-  print_comptes();
+  	//Creation du socket server
+	if ( (sock = socket(PF_INET, SOCK_DGRAM, IPPROTO_UDP)) < 0 ) {
+		Die("Failed to create socket");
+	}
 
-  int serversock, clientsock;
-  struct sockaddr_in echoserver, echoclient;
+	//initialisation du sockaddr_in du server
+	memset(&servaddr, 0, sizeof(servaddr));
 
-  //Creation du socket server
-  if ((serversock = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP)) < 0) {
-    Die("Failed to create socket");
-  }
+	//Construction du sockaddr_in du client
+	memset(&cliaddr, 0, sizeof(cliaddr));
+	servaddr.sin_family = AF_INET;
+	servaddr.sin_addr.s_addr = INADDR_ANY;
+	servaddr.sin_port = htons(PORT);
+		
+	// Bind le socket server
+	if ( bind(sock, (const struct sockaddr *)&servaddr, sizeof(servaddr)) < 0 ){
+		Die("Failed to bind the server socket");
+	}
+		
+	addrlen = sizeof(cliaddr);
 
-  //Construction du sockaddr_in du server
-  memset(&echoserver, 0, sizeof(echoserver));       // Clear struct
-  echoserver.sin_family = AF_INET;                  // Internet/IP 
-  echoserver.sin_addr.s_addr = htonl(INADDR_ANY);   // Incoming addr
-  echoserver.sin_port = htons(PORT);                // server port
+	//Le server tourne en boucle en atteandant une reception de requete
+	while(1){
+		//Reception de la requete du client
+		if((bufferlen = recvfrom(sock, (char *)buffer, BUFFSIZE, MSG_WAITALL, ( struct sockaddr *) &cliaddr, (socklen_t *) &addrlen))<0){
+			Die("Failed to receive additional bytes from client");
+		}
+		buffer[bufferlen] = '\0';
+		printf("Client : %s\n", buffer);
 
+    	//Traitement de la requete du client
+		Recu_banque(buffer);
+		bufferlen=strlen(buffer);
 
-  // Bind le socket server
-  if (bind(serversock, (struct sockaddr *) &echoserver, sizeof(echoserver)) < 0) {
-    Die("Failed to bind the server socket");
-  }
-
-  // Listen d'une connection sur le server socket
-  if (listen(serversock, MAXPENDING) < 0) {
-    Die("Failed to listen on server socket");
-  }
-
-  //Le server tourne en boucle en attendant une connection
-  while (1) {
-    unsigned int clientlen = sizeof(echoclient);
-    //Connection avec le client
-    if ((clientsock = accept(serversock, (struct sockaddr *) &echoclient, &clientlen)) < 0) {
-      Die("Failed to accept client connection");
-    }
-    fprintf(stdout, "Client connected: %s\n", inet_ntoa(echoclient.sin_addr));
-
-    //Commencant de l'echange avec le client
-    HandleClient(clientsock);
-  }
-
-  //Desallouer tous les comptes bancaires cree
-  freeListClients();
+    	//Envoie de reponse a la requet du client
+		if(sendto(sock, buffer, bufferlen, MSG_CONFIRM, (const struct sockaddr *) &cliaddr, addrlen)!=bufferlen){
+			Die("Failed to send bytes to client");
+		}
+		printf("Server envoi : %s\n", buffer);
+	}
+	
+	//Desallouer tous les comptes bancaires cree
+	freeListClients();
+	return 0;
 }

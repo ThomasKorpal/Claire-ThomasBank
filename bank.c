@@ -7,6 +7,8 @@
 char* password_tab[MAX_CLIENT_NUMBER]={"John2222", "290Anna", "1001Dalmatiens", "CPCets", "JaiFaim"};
 int nouv_id = 1;
 
+
+//Creation des comptes clients
 void init_bank()
 {
     srand(time(NULL));
@@ -21,6 +23,8 @@ void init_bank()
     }
 }
 
+
+//Ajout de nouveau client dans la base de donnes de la banque
 Client* add_client(int id_client, char* password)
 {
     Client* nouv_client = malloc(sizeof(Client));
@@ -34,6 +38,8 @@ Client* add_client(int id_client, char* password)
     return nouv_client;
 }
 
+
+//Ajout de compte a un client
 void add_account(Client* client)
 {
     Account* nouv_compte = malloc(sizeof(Account));
@@ -51,12 +57,10 @@ void add_account(Client* client)
         client->Comptes[client->index_compte]=nouv_compte;
     (client->index_compte)++;
     }
-    else
-    {
-        printf("La limite de comptes a été atteinte!");
-    }
 }
 
+
+//Trouver un client dans la base de donnees de la banque
 Client* find_client(int id_client)
 {
     for(int i = 0; i < MAX_CLIENT_NUMBER; i++)
@@ -70,6 +74,7 @@ Client* find_client(int id_client)
     return NULL;
 }
 
+//Trouver un compte du client
 Account* find_account(Client* client, int id_compte)
 {
     for(int i = 0; i < MAX_ACCOUNT_NUMBER; i++)
@@ -83,19 +88,27 @@ Account* find_account(Client* client, int id_compte)
     return NULL;
 }
 
+
+//Verification de la l'authentification du client
 Client* identification(int id_client, char* password)
 {
     Client* temp = find_client(id_client);
-    int test = strcmp(password, temp->password);
-    if(test != 0)
-    {
-        printf("Mot de passe incorrect, veuillez reessayer.\n");
-        return NULL;
+    if(temp!=NULL){
+        int test = strcmp(password, temp->password);
+        if(test != 0)
+        {
+            printf("Mot de passe incorrect, veuillez reessayer.\n");
+            return NULL;
+        }
+        printf("Mot de passe correct, accès autorisé\n");
+        return temp;
     }
-    printf("Mot de passe correct, accès autorisé\n");
-    return temp;
+    printf("Compte client inexistant, veuillez verifier le numero client\n");
+    return NULL;
 }
 
+
+//Enregistre les requetes precedent du client sur un compte
 void ecriture_archive(Account* compte, TypeOP type_ope, time_t date, int montant)
 {
     operation* op = malloc(sizeof(operation));
@@ -120,59 +133,76 @@ void ecriture_archive(Account* compte, TypeOP type_ope, time_t date, int montant
     }
 }
 
-void ajout(int id_client, int id_compte, char* password, int somme)
+
+//Requete ajout d'argent sur un compte
+int ajout(int id_client, int id_compte, char* password, int somme)
 {
     Client* client_courrant = identification(id_client, password);
     if(client_courrant != NULL)
     {
         Account* compte_courrant = find_account(client_courrant, id_compte);
-        compte_courrant->solde+=somme;
-        time_t now;
-        ecriture_archive(compte_courrant, AJOUT, time(&now), somme);
-        printf("La somme de %d€ a bien été ajoutée du compte n°%d appartenant au client n°%d\n",somme,id_compte,id_client);
-    }
-    
-}
-
-void retrait(int id_client, int id_compte, char* password, int somme)
-{
-    Client* client_courrant = identification(id_client, password);
-    if(client_courrant != NULL)
-    {
-        Account* compte_courrant = find_account(client_courrant, id_compte);
-        compte_courrant->solde-=somme;
-        time_t now;
-        ecriture_archive(compte_courrant,RETRAIT, time(&now), somme);
-        printf("La somme de %d€ a bien été retirée du compte n°%d appartenant au client n°%d\n",somme,id_compte,id_client);
-    }
-    
-}
-
-void solde(int id_client, int id_compte, char* password)
-{
-    Client* client_courrant = identification(id_client, password);
-    if(client_courrant != NULL)
-    {
-        Account* compte_courrant = find_account(client_courrant, id_compte);
-        printf("Votre solde est de: %lld euros\n",compte_courrant->solde);
-        time_t now;
-        ecriture_archive(compte_courrant,SOLDE,time(&now),0);
-    }
-}
-
-void operations(int id_client, int id_compte, char* password)
-{
-    Client* client_courrant = identification(id_client, password);
-    if(client_courrant != NULL){
-        Account* compte_courrant = find_account(client_courrant, id_compte);
-        printf("Visualisation des 10 dernières opérations :\n");
-        for(int i = 0; i < 10; i++)
-        {
-            printf("Date : %s\nType : %s\nMontant : %d euros\n\n",(compte_courrant->archive[i])->date, to_string((compte_courrant->archive[i])->type), (compte_courrant->archive[i])->montant);
+        if(compte_courrant!=NULL){
+            compte_courrant->solde+=somme;
+            time_t now;
+            ecriture_archive(compte_courrant, AJOUT, time(&now), somme);
+            return 1;
         }
     }
+    return 0;
 }
 
+
+//Requete retrait d'argent sur un compte
+int retrait(int id_client, int id_compte, char* password, int somme)
+{
+    Client* client_courrant = identification(id_client, password);
+    if(client_courrant != NULL)
+    {
+        Account* compte_courrant = find_account(client_courrant, id_compte);
+        if(compte_courrant!=NULL){
+            compte_courrant->solde-=somme;
+            time_t now;
+            ecriture_archive(compte_courrant,RETRAIT, time(&now), somme);
+            return 1;
+        }
+    }
+    return 0;
+}
+
+
+//Requete de recuperation du solde d'un compte
+operation* solde(int id_client, int id_compte, char* password)
+{
+    Client* client_courrant = identification(id_client, password);
+    if(client_courrant != NULL)
+    {
+        Account* compte_courrant = find_account(client_courrant, id_compte);
+        if(compte_courrant!=NULL){
+            time_t now;
+            ecriture_archive(compte_courrant,SOLDE,time(&now), compte_courrant->solde);
+
+            return compte_courrant->archive[compte_courrant->index_archive-1];
+        }
+    }
+    return NULL;
+}
+
+//Requete de l'historique des 10 dernieres operations
+Account* operations(int id_client, int id_compte, char* password)
+{
+    Client* client_courrant = identification(id_client, password);
+    Account* compte_courrant;
+    if(client_courrant != NULL){
+        compte_courrant = find_account(client_courrant, id_compte);
+        if(compte_courrant!=NULL){
+            return compte_courrant;
+        }
+    }
+
+    return NULL;
+}
+
+//Concersion int en char* d'une type d'operation
 char* to_string(TypeOP op)
 {
     char* res;
@@ -193,6 +223,8 @@ char* to_string(TypeOP op)
     return res;
 }
 
+
+//Desalouer l'ensemble des donnees de la banque
 void freeListClients()
 {
     for(int i = 0; i<MAX_CLIENT_NUMBER; i++)
@@ -208,3 +240,18 @@ void freeListClients()
         free(clients[i]);
     }
 }
+
+
+//Affichage des comptes clients
+void print_comptes()
+{
+    for(int i=0; i <MAX_CLIENT_NUMBER; i++)
+    {
+        printf("%d : %s\n",clients[i]->id_client,clients[i]->password);
+        for(int j=0; j<MAX_ACCOUNT_NUMBER; j++)
+        {
+            printf("    Compte n°%d : %lld€\n",clients[i]->Comptes[j]->id_compte,clients[i]->Comptes[j]->solde);
+        }
+    }
+}
+
