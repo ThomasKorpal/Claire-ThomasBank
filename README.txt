@@ -1,6 +1,6 @@
 # Claire-ThomasBank
 
------------------------------------------------------------------------- (ENG) -------------------------------------------------------------------------------------
+------------------------------------------------------------------------ (ENG) ----------------------------------------------------------------
 
 This project is a client/server banking application working both on the TCP protocol and on the UDP protocol. It creates 5 clients with 3 accounts each and let you control them. You can add money to an account, take money back, watch the amount that you have on one account and watch the previous 10 operations on each account. 
 
