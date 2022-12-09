@@ -180,7 +180,6 @@ operation* solde(int id_client, int id_compte, char* password)
         if(compte_courrant!=NULL){
             time_t now;
             ecriture_archive(compte_courrant,SOLDE,time(&now), compte_courrant->solde);
-
             return compte_courrant->archive[compte_courrant->index_archive-1];
         }
     }

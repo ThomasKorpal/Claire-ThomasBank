@@ -6,6 +6,7 @@
 #include <unistd.h>
 #include <netinet/in.h>
 
+
 #define BUFFSIZE 1000
 #define PORT 2000
 
@@ -116,7 +117,7 @@ int main() {
     if (send(sock, buffer, echolen, 0) != echolen) {
       Die("Mismatch in number of sent bytes");
     }
-    printf("Envoi au server : %s\n", buffer);
+    printf("Envoi au serveur : %s\n", buffer);
     
 
     //Reception du buffer envoyée par le server
@@ -124,7 +125,7 @@ int main() {
       Die("Failed to receive bytes from server");
     }
     buffer[echolen] = '\0';        //Ajout du fin de caractere
-    printf("Recu par le server : %s\n", buffer);
+    printf("Recu par le serveur : %s\n", buffer);
   }
 
   printf("Fermeture du socket client\n");
