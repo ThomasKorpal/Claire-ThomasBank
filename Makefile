@@ -1,31 +1,22 @@
-# options de compilation
 CC = gcc
-CCFLAGS = -Wall 
-LIBS =
-IDIR =
-LIBSDIR = 
+CCFLAGS = -Wall
+EXEC = server_TCP client_TCP server_UDP client_UDP
 
-# fichiers du projet
-SRC = bank.c main.c 
-OBJ = $(SRC:.c=.o)
-EXEC = bank.out
-
-# règle initiale
 all: $(EXEC)
 
-# règles de compilation
-main.o : bank.h
-bank.o : bank.h
-%.o: %.c
-	$(CC) $(CCFLAGS) -o $@ -c $< $(IDIR)
+server_TCP : bank.c server/server.c
+	$(CC) $(CCFLAGS) -o server_TCP bank.c server/server.c
 
-# règles d'édition de liens
-$(EXEC): $(OBJ)
-	$(CC) -o $@ $^ $(LIBS) $(LIBSDIR) -g
+client_TCP : client/client.c
+	$(CC) $(CCFLAGS) -o client_TCP client/client.c
 
-# règles supplémentaires
+server_UDP: bank.c server/UDPserver.c
+	$(CC) $(CCFLAGS) -o server_UDP bank.c server/UDPserver.c
+
+client_UDP: client/UDPclient.c
+	$(CC) $(CCFLAGS) -o client_UDP client/UDPclient.c
+
 clean:
 	rm -f *.o
-	ls $(OBJ)
 mproper:
-	rm -f $(EXEC) *.o
+	rm -f server_TCP server_UDP client_TCP client_UDP *.o
