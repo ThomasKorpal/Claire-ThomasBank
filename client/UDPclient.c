@@ -7,6 +7,7 @@
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <netinet/in.h>
+#include "bufferprinter.h"
 	
 #define PORT	 8080
 #define BUFFSIZE 1024
@@ -131,6 +132,7 @@ int main() {
 		}
 		buffer[bufferlen] = '\0';   //Ajout du fin de caractere
 		printf("Recu de la part du server : %s\n", buffer);
+		bufferPrinter(buffer);
 	}
 
 	printf("Fermeture du socket client\n");

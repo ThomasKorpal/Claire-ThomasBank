@@ -39,7 +39,7 @@ void Ecriture_Operation(char* buffer, Account* compte){
       strcat(buffer, to_string(compte->archive[i]->type));
       strcat(buffer, " ");
       strcat(buffer, compte->archive[i]->date);
-      buffer[strlen(buffer)-1]=' ';
+      //buffer[strlen(buffer)-1]=' ';
 
       char s[6];
       sprintf(s, "%d", compte->archive[i]->montant);
@@ -116,7 +116,7 @@ void HandleClient(int sock) {
     Recu_banque(buffer);
     received=strlen(buffer);
 
-    //Envoie de reponse a la requet du client
+    //Envoie de reponse a la requete du client
     if (send(sock, buffer, received, 0) != received) {
       Die("Failed to send bytes to client");
     }
@@ -169,7 +169,7 @@ int main() {
     }
     fprintf(stdout, "Client connected: %s\n", inet_ntoa(echoclient.sin_addr));
 
-    //Commencant de l'echange avec le client
+    //Debut de l'echange avec le client
     HandleClient(clientsock);
   }
 

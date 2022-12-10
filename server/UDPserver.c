@@ -39,7 +39,6 @@ void Ecriture_Operation(char* buffer, Account* compte){
       strcat(buffer, to_string(compte->archive[i]->type));
       strcat(buffer, " ");
       strcat(buffer, compte->archive[i]->date);
-      buffer[strlen(buffer)-1]=' ';
 
       char s[6];
       sprintf(s, "%d", compte->archive[i]->montant);
@@ -104,16 +103,16 @@ int main() {
 	int addrlen, bufferlen;
 		
 	
-  	//Creation des comptes bancaires des clients et affichage des comptes
+  //Creation des comptes bancaires des clients et affichage des comptes
 	init_bank();
 	print_comptes();	
 
-  	//Creation du socket server
+  //Creation du socket server
 	if ( (sock = socket(PF_INET, SOCK_DGRAM, IPPROTO_UDP)) < 0 ) {
 		Die("Failed to create socket");
 	}
 
-	//initialisation du sockaddr_in du server
+	//Initialisation du sockaddr_in du server
 	memset(&servaddr, 0, sizeof(servaddr));
 
 	//Construction du sockaddr_in du client

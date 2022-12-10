@@ -5,6 +5,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <netinet/in.h>
+#include "bufferprinter.h"
 
 #define BUFFSIZE 1000
 #define PORT 2000
@@ -30,6 +31,9 @@ void choix(char* buffer, int action){
       break;
     case 5:
       strcpy(buffer, "EXIT");
+      break;
+    default:
+      strcpy(buffer, "Action inexistant");
       break;
   }
 }
@@ -112,7 +116,7 @@ int main() {
     Envoi_banque(buffer);
     echolen=strlen(buffer);
 
-    //Envoi du buffer(contemant la demande du client) au server
+    //Envoi du buffer(contenant la demande du client) au server
     if (send(sock, buffer, echolen, 0) != echolen) {
       Die("Mismatch in number of sent bytes");
     }
@@ -125,6 +129,7 @@ int main() {
     }
     buffer[echolen] = '\0';        //Ajout du fin de caractere
     printf("Recu par le server : %s\n", buffer);
+    bufferPrinter(buffer);
   }
 
   printf("Fermeture du socket client\n");
