@@ -11,6 +11,8 @@ void bufferPrinter(char* buffer)
     char* delim=" ";
     int taille=strlen(buffer);
     char* typeRep=strtok(buffer, delim);
+
+    printf("\n");
     if(taille>14){
         if(!strcmp(typeRep, "RES_SOLDE")){
             int montant=atoi(strtok(NULL, delim));
@@ -20,9 +22,9 @@ void bufferPrinter(char* buffer)
             char* typeOP;
             char* date;
             int montant;
-            taille-=strlen(typeRep);
+            taille-=strlen(typeRep)-1;
 
-            while(taille>1){
+            while(taille>5){
                 typeOP=strtok(NULL, delim);
                 date=strtok(NULL, "\n");
                 montant=atoi(strtok(NULL, delim));

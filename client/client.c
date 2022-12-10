@@ -9,7 +9,7 @@
 
 
 #define BUFFSIZE 1000
-#define PORT 2000
+#define PORT 2001
 
 
 void Die(char *mess) { perror(mess); exit(1); }
