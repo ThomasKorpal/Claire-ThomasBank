@@ -7,6 +7,7 @@
 #include <netinet/in.h>
 #include "bufferprinter.h"
 
+
 #define BUFFSIZE 1000
 #define PORT 2000
 
@@ -120,7 +121,7 @@ int main() {
     if (send(sock, buffer, echolen, 0) != echolen) {
       Die("Mismatch in number of sent bytes");
     }
-    printf("Envoi au server : %s\n", buffer);
+    printf("Envoi au serveur : %s\n", buffer);
     
 
     //Reception du buffer envoyée par le server

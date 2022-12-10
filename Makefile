@@ -1,5 +1,8 @@
 CC = gcc
 CCFLAGS = -Wall
+EXEC = server_TCP client_TCP server_UDP client_UDP
+
+all: $(EXEC)
 
 server_TCP : bank.c server/server.c
 	$(CC) $(CCFLAGS) -o server_TCP bank.c server/server.c
