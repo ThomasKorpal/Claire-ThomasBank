@@ -35,7 +35,7 @@ typedef struct Client
     int index_compte;
 }Client;
 
-Client* clients[MAX_CLIENT_NUMBER];
+extern Client* clients_tab[MAX_CLIENT_NUMBER];
 
 void init_bank();
 Client* add_client(int id_client, char* password);

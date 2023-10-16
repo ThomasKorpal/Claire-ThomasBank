@@ -18,7 +18,7 @@ void test()
     int iden2;
     int act=0;
     char mdp[15];
-    printf("Bonjour, veuillez entrer votre identifiant :\n");
+    printf("!Bonjour, veuillez entrer votre identifiant :\n");
     scanf("%d",&iden);
     while(act != 5)
     {

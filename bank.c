@@ -4,9 +4,10 @@
 #include <string.h>
 #include <time.h>
 
+
 char* password_tab[MAX_CLIENT_NUMBER]={"John2222", "290Anna", "1001Dalmatiens", "CPCets", "JaiFaim"};
 int nouv_id = 1;
-
+Client* clients_tab[MAX_CLIENT_NUMBER];
 
 //Creation des comptes clients
 void init_bank()
@@ -16,9 +17,9 @@ void init_bank()
     for(int i = 0; i<MAX_CLIENT_NUMBER; i++)
     {
         int id_client=rand()%99999;
-        clients[i]=add_client(id_client, password_tab[i]);
+        clients_tab[i]=add_client(id_client, password_tab[i]);
         for(int j=0; j<MAX_ACCOUNT_NUMBER; j++){
-            add_account(clients[i]);
+            add_account(clients_tab[i]);
         }
     }
 }
@@ -65,9 +66,9 @@ Client* find_client(int id_client)
 {
     for(int i = 0; i < MAX_CLIENT_NUMBER; i++)
     {
-        if((clients[i])->id_client == id_client)
+        if((clients_tab[i])->id_client == id_client)
         {
-            return clients[i];
+            return clients_tab[i];
         }
     }
 
@@ -232,11 +233,11 @@ void freeListClients()
         {
             for(int k = 0; k<MAX_ARCHIVE_NUMBER; k++)
             {
-                free(clients[i]->Comptes[j]->archive[k]);
+                free(clients_tab[i]->Comptes[j]->archive[k]);
             }
-            free(clients[i]->Comptes[j]);
+            free(clients_tab[i]->Comptes[j]);
         }
-        free(clients[i]);
+        free(clients_tab[i]);
     }
 }
 
@@ -246,10 +247,10 @@ void print_comptes()
 {
     for(int i=0; i <MAX_CLIENT_NUMBER; i++)
     {
-        printf("%d : %s\n",clients[i]->id_client,clients[i]->password);
+        printf("%d : %s\n",clients_tab[i]->id_client,clients_tab[i]->password);
         for(int j=0; j<MAX_ACCOUNT_NUMBER; j++)
         {
-            printf("    Compte n°%d : %lld€\n",clients[i]->Comptes[j]->id_compte,clients[i]->Comptes[j]->solde);
+            printf("    Compte n°%d : %lld€\n",clients_tab[i]->Comptes[j]->id_compte,clients_tab[i]->Comptes[j]->solde);
         }
     }
 }

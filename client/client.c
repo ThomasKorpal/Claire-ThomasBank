@@ -61,29 +61,37 @@ void Ecriture_buffer(char* buffer, int action, char* id, char* compte, char* mdp
 }
 
 //Fonction permettant de traiter les requetes du client
-void Envoi_banque(char* buffer){
-  char id[15];
+void Envoi_banque(char* buffer)
+{
+  static char id[15];
   char compte[15];
   char mdp[15];
   int act;
 
 
   //Demandant les informations necessaire afin de traiter la demande du client
-  printf("Bonjour, veuillez entrer votre identifiant :\n");
-  scanf("%s",id);
+  if(!strcmp(id,""))
+  {
+    printf("Bonjour, veuillez entrer votre identifiant :\n");
+    scanf("%s",id);
+  }
   printf("Quelle action voulez vous effectuer ?\n- tapez 1 pour ajouter de l'argent à un de vos comptes\n- taper 2 pour faire un retrait\n- taper 3 pour consulter le solde d'un de vos comptes\n- taper 4 pour visualiser les 10 dernières opérations d'un de vos comptes\n- taper 5 pour fermer votre espace personnel\n");
   printf("Numéro d'action : ");
   scanf("%d",&act);
 
-  if(act!=5){           //Si le client demande de quitter alors pas besoin de connaitre les informations liée à son compte
+  if(act!=5) //Si le client demande de quitter alors pas besoin de connaitre les informations liée à son compte
+  {           
     printf("Quel est le compte concerné ? :\n");
     scanf("%s",compte);
     printf("Entrez votre mot de passe :\n");
     scanf("%s",mdp);
   }
-
-  choix(buffer, act);
-  Ecriture_buffer(buffer, act, id, compte, mdp);
+    choix(buffer, act);
+    Ecriture_buffer(buffer, act, id, compte, mdp);
+  if(act==5)
+  {
+    strcpy(id,"");
+  }
 }
 
 
